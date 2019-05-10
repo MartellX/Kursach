@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <conio.h>
 #include <cstdlib>
 #include <stdio.h>
 #include <string>
@@ -95,7 +96,7 @@ struct Edge {					// Список дуг
 
 
 class Graph {
-	friend class Node; 
+	friend class Menu; 
 
 	string graphPath; //	Путь к tgf
 	ifstream graphFile;	
@@ -105,6 +106,7 @@ class Graph {
 	int indexGraph; // Индекс графа
 	Node* pNodeStart = nullptr, * ppredNode = nullptr, *ptecNode = nullptr, *pNodeFinish = nullptr;
 	Edge* pEdgeStart = nullptr, * ppredEdge = nullptr, * ptecEdge = nullptr, * pEdgeFinish = nullptr;
+	Graph* pred, * next;
 
 public:	
 	Graph() {
@@ -134,7 +136,7 @@ public:
 			getConnections(c);
 			graphFile.getline(c, 20);
 		}
-
+		//searchNode(1)->showConnectedNodes();
 		graphFile.close();
 	};
 private: 
@@ -219,8 +221,73 @@ private:
 };
 
 
-class MainMenu {
+class Menu {
+public:
+	Menu(){
+		 ptecGraph = nullptr,  ppredGraph = nullptr,  pnextGraph = nullptr,  pStartGraph = nullptr,  pFinishGraph = nullptr;
+		MainMenu();
+	}
+private:
+	Graph* ptecGraph = nullptr, * ppredGraph = nullptr, * pnextGraph = nullptr , *pStartGraph = nullptr , *pFinishGraph = nullptr;
+	int flagGraph = 1, GraphCount = 0;
+	void MainMenu() {
+		cout << "Выберите действие: \n";
+		cout << "1. Загрузить граф из файла\n";
+		cout << "2. Выйти\n";
 
+		int choice = getch();
+		switch (choice)
+		{
+		case(1):
+			LoadGraph();
+			break;
+		default:
+			cout << "Нет такого действия!\n\n";
+			MainMenu();
+			break;
+		}
+	}
+	void LoadGraph(){
+		GraphCount++;
+		//ptecGraph = new Graph;
+		if (flagGraph) {
+			pStartGraph = ptecGraph;
+			flagGraph = 0;
+		}
+		else {
+			ppredGraph->next = ptecGraph;
+			ptecGraph->pred = ppredGraph;
+		}
+		ptecGraph->indexGraph = GraphCount;
+	}
+
+	void Graph() {
+		cout << "[Работа с открытым графом]\n";
+		cout << "Выберите действие:\n";
+		cout << "1. Выполнить задание по варианту\n";
+		cout << "2. Добавить вершину\n";
+		cout << "3. Удалить вершину\n";
+		cout << "4. Изменить вершину\n";
+		cout << "5. Изменить дугу\n";
+		cout << "6. Индекс первой вершины в графе \n";
+		cout << "7. Индекс вершины, смежной с выбранной вершиной, следующий за выбранным индексом\n";
+		//cout << "8. Вершина с индексом i из множества вершин, смежных с v\n";
+
+		int choice = getch();
+	}
+
+	void OpenGraph(int index) {
+		ptecGraph = pStartGraph;
+		while (1) {
+			if (ptecGraph->indexGraph == index) {
+				Graph();
+				break;
+			}
+			else if (ptecGraph == pFinishGraph) break;
+			ptecGraph = ptecGraph->next;
+		}
+		cout << "[OpenGraph] Нет такого графа!\n";
+	}
 
 };
 
@@ -228,7 +295,7 @@ class MainMenu {
 
 int main() {
 	setlocale(0, "");
-
+	Menu System;
 
 	system("pause");
 	
