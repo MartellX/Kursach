@@ -31,7 +31,7 @@ public:
 	}
 
 	void refreshNodeEdges(Node* connectedNode, int vector) { // vector означает направление (0 - входит в данную вершину, 1 - выходит из данной вершины)
-		cout << "Node[" << index << "]\n";
+		//cout << "Node[" << index << "]\n";
 		if (vector) {
 			toBuffer(toNode, toNodeCount);
 			//delete[] toNode;
@@ -96,17 +96,12 @@ struct Edge {					// Список дуг
 
 
 class Graph {
-	friend class Menu; 
 
 	string graphPath; //	Путь к tgf
 	ifstream graphFile;	
 	int nodeCount;	// Количество вершин в графе
 	int flag = 1; // Флаг для вершин
 	int flag2 = 1; // Флаг для дуг 
-	int indexGraph; // Индекс графа
-	Node* pNodeStart = nullptr, * ppredNode = nullptr, *ptecNode = nullptr, *pNodeFinish = nullptr;
-	Edge* pEdgeStart = nullptr, * ppredEdge = nullptr, * ptecEdge = nullptr, * pEdgeFinish = nullptr;
-	Graph* pred, * next;
 
 public:	
 	Graph() {
@@ -139,6 +134,10 @@ public:
 		//searchNode(1)->showConnectedNodes();
 		graphFile.close();
 	};
+	int indexGraph; // Индекс графа
+	Node* pNodeStart = nullptr, * ppredNode = nullptr, * ptecNode = nullptr, * pNodeFinish = nullptr;
+	Edge* pEdgeStart = nullptr, * ppredEdge = nullptr, * ptecEdge = nullptr, * pEdgeFinish = nullptr;
+	Graph* pred = nullptr, * next = nullptr;
 private: 
 	void getNodes(char c[20]) {
 		char* next_token1 = NULL; // Токен нужен для работы strtok_s
@@ -159,7 +158,7 @@ private:
 		
 		createEdge(nodeOut, nodeIn, Lable);
 
-		printf("%d %d %d\n", nodeOut, nodeIn, Lable);
+		//printf("%d %d %d\n", nodeOut, nodeIn, Lable);
 	}
 
 	void createEdge(int indexOut, int indexIn, int Lable) { // Создание списка дуг
@@ -222,23 +221,27 @@ private:
 
 
 class Menu {
+	Graph* ptecGraph = nullptr, * ppredGraph = nullptr, * pnextGraph = nullptr, * pStartGraph = nullptr, * pFinishGraph = nullptr;
+
 public:
+	
 	Menu(){
-		 ptecGraph = nullptr,  ppredGraph = nullptr,  pnextGraph = nullptr,  pStartGraph = nullptr,  pFinishGraph = nullptr;
+		ptecGraph = nullptr;
 		MainMenu();
 	}
 private:
-	Graph* ptecGraph = nullptr, * ppredGraph = nullptr, * pnextGraph = nullptr , *pStartGraph = nullptr , *pFinishGraph = nullptr;
+	
 	int flagGraph = 1, GraphCount = 0;
 	void MainMenu() {
+		system("cls");
 		cout << "Выберите действие: \n";
 		cout << "1. Загрузить граф из файла\n";
 		cout << "2. Выйти\n";
-
-		int choice = getch();
+		
+		char choice =_getch();
 		switch (choice)
 		{
-		case(1):
+		case('1'):
 			LoadGraph();
 			break;
 		default:
@@ -248,8 +251,12 @@ private:
 		}
 	}
 	void LoadGraph(){
+		system("cls");
+
 		GraphCount++;
-		//ptecGraph = new Graph;
+
+		ptecGraph = new Graph;
+
 		if (flagGraph) {
 			pStartGraph = ptecGraph;
 			flagGraph = 0;
@@ -259,9 +266,13 @@ private:
 			ptecGraph->pred = ppredGraph;
 		}
 		ptecGraph->indexGraph = GraphCount;
+		graph(ptecGraph);
 	}
 
-	void Graph() {
+	void graph(Graph* pointerGraph) {
+		system("cls");
+		ptecGraph = pointerGraph;
+
 		cout << "[Работа с открытым графом]\n";
 		cout << "Выберите действие:\n";
 		cout << "1. Выполнить задание по варианту\n";
@@ -272,8 +283,9 @@ private:
 		cout << "6. Индекс первой вершины в графе \n";
 		cout << "7. Индекс вершины, смежной с выбранной вершиной, следующий за выбранным индексом\n";
 		//cout << "8. Вершина с индексом i из множества вершин, смежных с v\n";
-
-		int choice = getch();
+		cout << "8. Закрыть граф\n";
+		cout << "0. Вернуться в главное меню\n";
+		char choice = _getch();
 	}
 
 	void OpenGraph(int index) {
