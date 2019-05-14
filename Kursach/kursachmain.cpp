@@ -50,6 +50,13 @@ public:
 		}
 	}
 
+	bool isConnectedTo(int index) {
+		for (int i = 0; i < toNodeCount; i++) {
+			if (toNode[i]->index == index) return 1;
+		}
+		return 0;
+	}
+
 	void showConnectedNodes() { //Показывает все дуги связанные с данной вершиной
 		int nodeFlag = 0;
 		printf("%6s| %6s\n\n", "Вход", "Выход");
@@ -99,11 +106,14 @@ class Graph {
 
 	string graphPath; //	Путь к tgf
 	ifstream graphFile;	
-	int nodeCount;	// Количество вершин в графе
+	
 	int flag = 1; // Флаг для вершин
 	int flag2 = 1; // Флаг для дуг 
+	
 
 public:	
+
+	int nodeCount;	// Количество вершин в графе
 	Graph() {
 		nodeCount = 0;
 		cout << "Укажите путь к графу (.tgf): ";
@@ -124,6 +134,7 @@ public:
 			graphFile.getline(c, 20);
 		}
 		
+		ConnectivityMatrix = new int*[nodeCount];
 		cout << "Количество вершин: " << nodeCount<<endl;
 		graphFile.getline(c, 20);
 		while (!(graphFile.eof()||c[0]=='\n')) 
@@ -133,16 +144,22 @@ public:
 		}
 		//searchNode(1)->showConnectedNodes();
 		graphFile.close();
+
+		refreshMatrix();
 	};
 	int indexGraph; // Индекс графа
 	Node* pNodeStart = nullptr, * ppredNode = nullptr, * ptecNode = nullptr, * pNodeFinish = nullptr;
 	Edge* pEdgeStart = nullptr, * ppredEdge = nullptr, * ptecEdge = nullptr, * pEdgeFinish = nullptr;
 	Graph* pred = nullptr, * next = nullptr;
+	int** ConnectivityMatrix;
+
+	
 private: 
 	void getNodes(char c[20]) {
 		char* next_token1 = NULL; // Токен нужен для работы strtok_s
 		char* pch = strtok_s(c, " ", &next_token1);
 		int index = atoi(pch);
+
 		createNode(index);
 
 	}
@@ -201,6 +218,18 @@ private:
 		ptecNode->index = index;
 		ppredNode = ptecNode;
 		pNodeFinish = ptecNode;
+	}
+
+	void refreshMatrix() {
+		delete ConnectivityMatrix;
+		ConnectivityMatrix = new int* [nodeCount];
+		for (int i = 0; i < nodeCount; i++)
+		{
+			ConnectivityMatrix[i] = new int[nodeCount];
+			for (int j = 0; j < nodeCount; j++) {
+				ConnectivityMatrix[i][j] = (searchNode(i + 1)->isConnectedTo(j + 1));
+			}
+		}
 	}
 
 	Node* searchNode(int index) { // Фукнция возвращающая адрес объекта с определенным индексом
@@ -283,9 +312,36 @@ private:
 		cout << "6. Индекс первой вершины в графе \n";
 		cout << "7. Индекс вершины, смежной с выбранной вершиной, следующий за выбранным индексом\n";
 		//cout << "8. Вершина с индексом i из множества вершин, смежных с v\n";
-		cout << "8. Закрыть граф\n";
+		cout << "8. Матрица смежности графа \n";
+		cout << "9. Закрыть граф\n";
 		cout << "0. Вернуться в главное меню\n";
 		char choice = _getch();
+
+		switch (choice)
+		{
+		case('8'):
+			ShowMatrix();
+			graph(ptecGraph);
+			break;
+		case('0'):
+			break;
+		default:
+			break;
+		}
+		MainMenu();
+	}
+
+	void ShowMatrix() {
+		system("cls");
+
+
+		for (int i = 0; i < ptecGraph->nodeCount; i++) {
+			for (int j = 0; j < ptecGraph->nodeCount; j++) {
+				cout << ptecGraph->ConnectivityMatrix[i][j] << " ";
+			}
+			cout << endl;
+		}
+		system("pause");
 	}
 
 	void OpenGraph(int index) {
