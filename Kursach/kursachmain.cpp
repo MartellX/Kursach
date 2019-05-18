@@ -153,8 +153,53 @@ public:
 	Graph* pred = nullptr, * next = nullptr;
 	int** ConnectivityMatrix;
 
-	
+	void printAllPathsInGraph() {
+		for (int i = 0; i < nodeCount; i++) {
+			for (int j = 0; j < nodeCount; j++) {
+				if (j != i)
+					printAllPaths(i + 1, j + 1);
+			}
+		}
+	}
+	void printAllPaths(int s, int d) {
+		// Создаем массив посещенности для всех вершин
+		bool* visited = new bool[nodeCount];
+
+		// Создаем массив для хранения путей
+		int* path = new int[nodeCount];
+		int path_index = 0; // Initialize path[] as empty 
+
+		// Отмечаем все вершины непосещенными
+		for (int i = 0; i < nodeCount; i++)
+			visited[i] = false;
+
+		// Вызываем рекурсивную функцию, чтобы выводить все пути 
+		printAllPathsUtil(s, d, visited, path, path_index);
+	}
 private: 
+
+	void printAllPathsUtil(int u, int d, bool visited[], int path[], int& path_index) {
+		visited[u] = true;
+		path[path_index] = u;
+		path_index++;
+		Node* uNode = searchNode(u);
+		if (u == d) {
+			for (int i = 0; i < path_index; i++) {
+				cout << path[i] << " ";
+			}
+			cout << endl;
+		}
+		else
+		{
+			for (int i = 0; i < uNode->toNodeCount; i++) {
+				if (!visited[ uNode->toNode[i]->index])
+					printAllPathsUtil(uNode->toNode[i]->index, d, visited, path, path_index);
+			}
+		}
+		path_index--;
+		visited[u] = false;
+
+	}
 	void getNodes(char c[20]) {
 		char* next_token1 = NULL; // Токен нужен для работы strtok_s
 		char* pch = strtok_s(c, " ", &next_token1);
@@ -319,6 +364,11 @@ private:
 
 		switch (choice)
 		{
+		case ('1'):
+			ptecGraph->printAllPathsInGraph();
+			system("pause");
+			graph(ptecGraph);
+			break;
 		case('8'):
 			ShowMatrix();
 			graph(ptecGraph);
