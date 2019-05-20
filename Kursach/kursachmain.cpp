@@ -15,6 +15,7 @@ class Node {							//Класс для вершины
 
 public:
 	int index;
+	string label;
 	Node* pred, * next; // Адреса предыдущей и следующей вершины в графе
 	Node** toNode, **outNode, **NodeBuffer; // Будущие указатели на массив с указателями на Вершины, куда данная Вершина ведет (toNode), и откуда (outNode)
 	int toNodeCount, outNodeCount;
@@ -157,20 +158,20 @@ public:
 		for (int i = 0; i < nodeCount; i++) {
 			for (int j = 0; j < nodeCount; j++) {
 				if (j != i)
-					printAllPaths(i + 1, j + 1);
+					printAllPaths(i+1, j+1);
 			}
 		}
 	}
 	void printAllPaths(int s, int d) {
 		// Создаем массив посещенности для всех вершин
-		bool* visited = new bool[nodeCount];
+		bool* visited = new bool[nodeCount+1];
 
 		// Создаем массив для хранения путей
-		int* path = new int[nodeCount];
+		string* path = new string[nodeCount+1];
 		int path_index = 0; // Initialize path[] as empty 
 
 		// Отмечаем все вершины непосещенными
-		for (int i = 0; i < nodeCount; i++)
+		for (int i = 0; i <= nodeCount; i++)
 			visited[i] = false;
 
 		// Вызываем рекурсивную функцию, чтобы выводить все пути 
@@ -178,11 +179,12 @@ public:
 	}
 private: 
 
-	void printAllPathsUtil(int u, int d, bool visited[], int path[], int& path_index) {
-		visited[u] = true;
-		path[path_index] = u;
-		path_index++;
+	void printAllPathsUtil(int u, int d, bool visited[], string path[], int& path_index) {
 		Node* uNode = searchNode(u);
+		visited[u] = true;
+		path[path_index] = uNode->label;
+		path_index++;
+		
 		if (u == d) {
 			for (int i = 0; i < path_index; i++) {
 				cout << path[i] << " ";
@@ -204,8 +206,9 @@ private:
 		char* next_token1 = NULL; // Токен нужен для работы strtok_s
 		char* pch = strtok_s(c, " ", &next_token1);
 		int index = atoi(pch);
-
-		createNode(index);
+		pch = strtok_s(NULL, " ", &next_token1);
+		string label = pch;
+		createNode(index, pch);
 
 	}
 
@@ -248,7 +251,7 @@ private:
 		
 	}
 
-	void createNode(int index){ //Создание объектов вершин
+	void createNode(int index, string label){ //Создание объектов вершин
 		ptecNode = new Node;
 		if (flag) {
 			pNodeStart = ptecNode;
@@ -260,6 +263,7 @@ private:
 			ptecNode->pred = ptecNode;
 		}
 
+		ptecNode->label = label;
 		ptecNode->index = index;
 		ppredNode = ptecNode;
 		pNodeFinish = ptecNode;
