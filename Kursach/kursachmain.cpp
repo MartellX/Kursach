@@ -499,7 +499,7 @@ private:
 			break;
 		case('8'):
 			ShowMatrix();
-			graph(ptecGraph);
+			graph(ptecGraph);//
 			break;
 		case('9'):
 			closeGraph(ptecGraph);
