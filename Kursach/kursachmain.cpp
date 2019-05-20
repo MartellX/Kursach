@@ -110,11 +110,12 @@ class Graph {
 	
 	int flag = 1; // Флаг для вершин
 	int flag2 = 1; // Флаг для дуг 
-	
+	int pathsCount;
 
 public:	
 
 	int nodeCount;	// Количество вершин в графе
+
 	Graph() {
 		nodeCount = 0;
 		cout << "Укажите путь к графу (.tgf): ";
@@ -157,11 +158,13 @@ public:
 	void printAllPathsInGraph() {
 		for (int i = 0; i < nodeCount; i++) {
 			for (int j = 0; j < nodeCount; j++) {
-				if (j != i)
 					printAllPaths(i+1, j+1);
 			}
 		}
+
+		cout << "\nВсего путей: " << pathsCount <<endl;
 	}
+
 	void printAllPaths(int s, int d) {
 		// Создаем массив посещенности для всех вершин
 		bool* visited = new bool[nodeCount+1];
@@ -169,33 +172,97 @@ public:
 		// Создаем массив для хранения путей
 		string* path = new string[nodeCount+1];
 		int path_index = 0; // Initialize path[] as empty 
-
+		int flagNode = 0;
 		// Отмечаем все вершины непосещенными
 		for (int i = 0; i <= nodeCount; i++)
 			visited[i] = false;
 
 		// Вызываем рекурсивную функцию, чтобы выводить все пути 
-		printAllPathsUtil(s, d, visited, path, path_index);
+		printAllPathsUtil(s, d, visited, path, path_index, s, flagNode);
+		
+	}
+
+	void addNode() {
+
+		string label;
+		cout << "Введите название вершины: ";
+
+		cin >> label;
+
+		nodeCount++;
+		createNode(nodeCount, label);
+		refreshMatrix();
+	}
+
+	void addEdge() {
+		string outLabel, toLabel;
+		int out, to, Weight;
+		cout << "Введите название начальной вершины: ";
+		cin >> outLabel;
+
+		cout << "Введите название конечной вершины: ";
+		cin >> toLabel;
+
+		cout << "Введите вес дуги: ";
+		cin >> Weight;
+
+		out = searchNode(outLabel)->index;
+		to = searchNode(toLabel)->index;
+		createEdge(out, to, Weight);
+		refreshMatrix();
+	}
+
+	void changeNode() {
+		string oldLabel, newLabel;
+		cout << "Название какой вершины вы хотите поменять? (введите название)\n ";
+		cin >> oldLabel;
+		cout << "На какое название?\n ";
+		cin >> newLabel;
+
+		searchNode(oldLabel)->label = newLabel;
+	}
+
+
+
+	~Graph() {
+		ptecNode = pNodeStart;
+		for (int i = 0; i < nodeCount-1; i++) {
+			ptecNode = ptecNode->next;
+			delete ptecNode->pred;
+		}
+
+		delete ptecNode;
 	}
 private: 
 
-	void printAllPathsUtil(int u, int d, bool visited[], string path[], int& path_index) {
+	void printAllPathsUtil(int u, int d, bool visited[], string path[], int& path_index, int& StartNode, int& flagNode) {
 		Node* uNode = searchNode(u);
-		visited[u] = true;
+
+		
 		path[path_index] = uNode->label;
 		path_index++;
 		
-		if (u == d) {
+
+		if (u == d and flagNode) {
 			for (int i = 0; i < path_index; i++) {
 				cout << path[i] << " ";
+				
 			}
 			cout << endl;
+			pathsCount++;
 		}
 		else
 		{
+			if (u == StartNode and !flagNode) {
+				flagNode = 1;
+			}
+			else {
+				visited[u] = true;
+			}
+
 			for (int i = 0; i < uNode->toNodeCount; i++) {
-				if (!visited[ uNode->toNode[i]->index])
-					printAllPathsUtil(uNode->toNode[i]->index, d, visited, path, path_index);
+				if (!visited[uNode->toNode[i]->index])
+					printAllPathsUtil(uNode->toNode[i]->index, d, visited, path, path_index, StartNode, flagNode);
 			}
 		}
 		path_index--;
@@ -260,7 +327,7 @@ private:
 		}
 		else {
 			ppredNode->next = ptecNode;
-			ptecNode->pred = ptecNode;
+			ptecNode->pred = ppredNode;
 		}
 
 		ptecNode->label = label;
@@ -295,12 +362,24 @@ private:
 		cout << "\n[searchNodes] Нет вершины с таким индексом!\n";
 	}
 
+	Node* searchNode(string label) { // Фукнция возвращающая адрес объекта с определенным индексом
+		ptecNode = pNodeStart;
+
+		while (1) {
+			if (ptecNode->label == label) {
+				return ptecNode;
+			}
+			if (ptecNode == pNodeFinish) break;
+			ptecNode = ptecNode->next;
+		}
+
+		cout << "\n[searchNodes] Нет вершины с таким индексом!\n";
+	}
 };
 
 
 class Menu {
 	Graph* ptecGraph = nullptr, * ppredGraph = nullptr, * pnextGraph = nullptr, * pStartGraph = nullptr, * pFinishGraph = nullptr;
-
 public:
 	
 	Menu(){
@@ -312,21 +391,52 @@ private:
 	int flagGraph = 1, GraphCount = 0;
 	void MainMenu() {
 		system("cls");
-		cout << "Выберите действие: \n";
-		cout << "1. Загрузить граф из файла\n";
-		cout << "2. Выйти\n";
-		
-		char choice =_getch();
-		switch (choice)
-		{
-		case('1'):
-			LoadGraph();
-			break;
-		default:
-			cout << "Нет такого действия!\n\n";
-			MainMenu();
-			break;
+		if (GraphCount == 0) {
+			cout << "Выберите действие: \n";
+			cout << "1. Загрузить граф из файла\n";
+			cout << "2. Выйти\n";
+			char choice = _getch();
+			switch (choice)
+			{
+			case('1'):
+				LoadGraph();
+				break;
+			default:
+				cout << "Нет такого действия!\n\n";
+				MainMenu();
+				break;
+			}
 		}
+		else {
+			cout << "Выберите действие: \n";
+			cout << "1. Загрузить граф из файла\n";
+			cout << "2. Посмотреть открытые графы\n";
+			cout << "3. Выйти\n";
+			char choice = _getch();
+			int index;
+			switch (choice)
+			{
+			case('1'):
+				LoadGraph();
+				break;
+			case('2'):
+				cout << "Открыты графы: ";
+				ptecGraph = pStartGraph;
+				for (int i = 0; i < GraphCount; i++) {
+					cout << ptecGraph->indexGraph << " ";
+					ptecGraph = ptecGraph->next;
+				}
+				cout << endl;
+				cout << "Какой граф хотите открыть?\n";
+				cin >> index;
+				OpenGraph(index);
+			default:
+				cout << "Нет такого действия!\n\n";
+				MainMenu();
+				break;
+			}
+		}
+
 	}
 	void LoadGraph(){
 		system("cls");
@@ -344,6 +454,7 @@ private:
 			ptecGraph->pred = ppredGraph;
 		}
 		ptecGraph->indexGraph = GraphCount;
+		ppredGraph = ptecGraph;
 		graph(ptecGraph);
 	}
 
@@ -355,7 +466,8 @@ private:
 		cout << "Выберите действие:\n";
 		cout << "1. Выполнить задание по варианту\n";
 		cout << "2. Добавить вершину\n";
-		cout << "3. Удалить вершину\n";
+		cout << "3. Добавить дугу\n";
+		//cout << "3. Удалить вершину\n";
 		cout << "4. Изменить вершину\n";
 		cout << "5. Изменить дугу\n";
 		cout << "6. Индекс первой вершины в графе \n";
@@ -373,18 +485,35 @@ private:
 			system("pause");
 			graph(ptecGraph);
 			break;
+		case ('2'):
+			ptecGraph->addNode();
+			graph(ptecGraph);
+			break;
+		case ('3'):
+			ptecGraph->addEdge();
+			graph(ptecGraph);
+			break;
+		case ('4'):
+			ptecGraph->changeNode();
+			graph(ptecGraph);
+			break;
 		case('8'):
 			ShowMatrix();
 			graph(ptecGraph);
 			break;
+		case('9'):
+			closeGraph(ptecGraph);
+			break;
 		case('0'):
 			break;
 		default:
+			cout << "Нет такого действия!";
+			graph(ptecGraph);
 			break;
 		}
 		MainMenu();
 	}
-
+	
 	void ShowMatrix() {
 		system("cls");
 
@@ -400,9 +529,9 @@ private:
 
 	void OpenGraph(int index) {
 		ptecGraph = pStartGraph;
-		while (1) {
+		while (1 and ptecGraph!=nullptr) {
 			if (ptecGraph->indexGraph == index) {
-				Graph();
+				graph(ptecGraph);
 				break;
 			}
 			else if (ptecGraph == pFinishGraph) break;
@@ -411,6 +540,15 @@ private:
 		cout << "[OpenGraph] Нет такого графа!\n";
 	}
 
+	void closeGraph(Graph* closingGraph) {
+		if (closingGraph->pred != nullptr)
+		closingGraph->pred->next = closingGraph->next;
+		if (closingGraph->next != nullptr)
+		closingGraph->next->pred = closingGraph->pred;
+		delete closingGraph;
+
+		GraphCount--;
+	}
 };
 
 
