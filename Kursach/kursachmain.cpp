@@ -156,6 +156,7 @@ public:
 	int** ConnectivityMatrix;
 
 	void printAllPathsInGraph() {
+		pathsCount = 0;
 		for (int i = 0; i < nodeCount; i++) {
 			for (int j = 0; j < nodeCount; j++) {
 					printAllPaths(i+1, j+1);
@@ -185,10 +186,11 @@ public:
 	void addNode() {
 
 		string label;
-		cout << "¬ведите название вершины: ";
+		do {
+			cout << "¬ведите название вершины: ";
 
-		cin >> label;
-
+			cin >> label;
+		} while (searchNode(label) != nullptr);
 		nodeCount++;
 		createNode(nodeCount, label);
 		refreshMatrix();
@@ -236,16 +238,16 @@ public:
 private: 
 
 	void printAllPathsUtil(int u, int d, bool visited[], string path[], int& path_index, int& StartNode, int& flagNode) {
-		Node* uNode = searchNode(u);
+		Node* uNode = searchNode(u); //Ќаходим адрес вершины, с которой работаем
 
 		
-		path[path_index] = uNode->label;
-		path_index++;
+		path[path_index] = uNode->label; //«аписываем в путь метку вершины
+		path_index++; //”величываем индекс пути
 		
 
 		if (u == d and flagNode) {
 			for (int i = 0; i < path_index; i++) {
-				cout << path[i] << " ";
+				cout << path[i] << " "; // огда обошли весь один путь, выводим его
 				
 			}
 			cout << endl;
@@ -254,15 +256,15 @@ private:
 		else
 		{
 			if (u == StartNode and !flagNode) {
-				flagNode = 1;
+				flagNode = 1;//≈сли мы в первый раз в начальной вершине, то делаем метку, что мы здесь были, но не записываем в посещенные
 			}
 			else {
 				visited[u] = true;
 			}
 
-			for (int i = 0; i < uNode->toNodeCount; i++) {
-				if (!visited[uNode->toNode[i]->index])
-					printAllPathsUtil(uNode->toNode[i]->index, d, visited, path, path_index, StartNode, flagNode);
+			for (int i = 0; i < uNode->toNodeCount; i++) { //ƒостаем количество смежных вершин из данной вершины
+				if (!visited[uNode->toNode[i]->index]) //≈сли не посещали следующую смежну вершину, переходим к ней
+					printAllPathsUtil(uNode->toNode[i]->index, d, visited, path, path_index, StartNode, flagNode); // ищем количество путей уже из данной вершины в конечную.
 			}
 		}
 		path_index--;
@@ -374,6 +376,7 @@ private:
 		}
 
 		cout << "\n[searchNodes] Ќет вершины с таким индексом!\n";
+		return nullptr;
 	}
 };
 
