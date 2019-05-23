@@ -10,7 +10,9 @@
 
 using namespace std;
 
-class Node {							//Класс для вершины
+//------------------------------------------------------------ Работа с вершиной ------------------------------------------------------------------------------
+
+class Node {							
 
 
 public:
@@ -23,6 +25,7 @@ public:
 	Node() {
 		toNode = new Node*[0];
 		outNode = new Node*[0];
+		NodeBuffer = new Node * [0];
 		toNodeCount = 0;
 		outNodeCount = 0;
 		
@@ -31,11 +34,12 @@ public:
 		return this;
 	}
 
+
 	void refreshNodeEdges(Node* connectedNode, int vector) { // vector означает направление (0 - входит в данную вершину, 1 - выходит из данной вершины)
 		//cout << "Node[" << index << "]\n";
 		if (vector) {
 			toBuffer(toNode, toNodeCount);
-			//delete[] toNode;
+			//delete[toNodeCount] toNode;
 			toNodeCount++;
 			toNode = new Node*[toNodeCount];
 			outBuffer(toNode, toNodeCount-1);
@@ -43,12 +47,37 @@ public:
 		}
 		else {
 			toBuffer(outNode, outNodeCount);
-			//delete[] outNode;
+			//delete[outNodeCount] outNode;
 			outNodeCount++;
 			outNode = new Node*[toNodeCount];
 			outBuffer(outNode, outNodeCount - 1);
 			outNode[outNodeCount - 1] = connectedNode;
 		}
+		//delete[] NodeBuffer;
+	}
+	void deleteNodeEdges(Node* connectedNode, int vector) {
+		
+		if (vector) {
+			toBuffer(toNode, toNodeCount);
+			//delete outNode;
+			for (int i = 0; i < toNodeCount; i++) {
+				if (toNode[i] == connectedNode) index = i;
+			}
+			toNodeCount--;
+			toNode = new Node * [toNodeCount];
+			outBuffer(toNode, toNodeCount,index);
+		}
+		else {
+			toBuffer(outNode, outNodeCount);
+			//delete outNode;
+			for (int i = 0; i < outNodeCount; i++) {
+				if (outNode[i] == connectedNode) index = i;
+			}
+			toNodeCount--;
+			outNode = new Node * [toNodeCount];
+			outBuffer(outNode, outNodeCount, index);
+		}
+		//delete[] NodeBuffer;
 	}
 
 	bool isConnectedTo(int index) {
@@ -78,8 +107,9 @@ public:
 		
 
 private:
+
 	void toBuffer(Node** array, int n) {
-		delete[] NodeBuffer;
+		delete [] NodeBuffer;
 		NodeBuffer = new Node*[n];
 		for (int i = 0; i < n; i++) {
 			NodeBuffer[i] = array[i];
@@ -91,9 +121,19 @@ private:
 			array[i] = NodeBuffer[i] ;
 		}
 	}
+
+	void outBuffer(Node** array, int n, int index) {
+		for (int i = 0; i < n; i++) {
+			if (i != index) {
+				array[i] = NodeBuffer[i];
+			}
+		}
+	}
 };
 
-struct Edge {					// Список дуг
+//------------------------------------------------------------ Список дуг ------------------------------------------------------------------------------
+
+struct Edge {					
 	Edge* pred, * next;
 	Node* out = nullptr; // Адрес вершины, откуда дуга выходит
 	int indexIn;		// Её индекс
@@ -102,6 +142,7 @@ struct Edge {					// Список дуг
 	Node* in = nullptr;
 };
 
+//------------------------------------------------------------ Работа с графом ------------------------------------------------------------------------------
 
 class Graph {
 
@@ -115,7 +156,7 @@ class Graph {
 public:	
 
 	int nodeCount;	// Количество вершин в графе
-
+	int edgeCount;
 	Graph() {
 		nodeCount = 0;
 		cout << "Укажите путь к графу (.tgf): ";
@@ -149,6 +190,7 @@ public:
 
 		refreshMatrix();
 	};
+
 	int indexGraph; // Индекс графа
 	Node* pNodeStart = nullptr, * ppredNode = nullptr, * ptecNode = nullptr, * pNodeFinish = nullptr;
 	Edge* pEdgeStart = nullptr, * ppredEdge = nullptr, * ptecEdge = nullptr, * pEdgeFinish = nullptr;
@@ -212,6 +254,8 @@ public:
 		to = searchNode(toLabel)->index;
 		createEdge(out, to, Weight);
 		refreshMatrix();
+
+		edgeCount++;
 	}
 
 	void changeNode() {
@@ -229,11 +273,20 @@ public:
 	~Graph() {
 		ptecNode = pNodeStart;
 		for (int i = 0; i < nodeCount-1; i++) {
+			Edge* tempEdge = searchEdge(ptecNode->pred);
 			ptecNode = ptecNode->next;
+			if (tempEdge != nullptr) {
+				deleteEdge(tempEdge);
+			}
+			
 			delete ptecNode->pred;
 		}
-
+		Edge* tempEdge = searchEdge(ptecNode);
+		if (tempEdge != nullptr) {
+			deleteEdge(tempEdge);
+		}
 		delete ptecNode;
+		delete ConnectivityMatrix;
 	}
 private: 
 
@@ -271,6 +324,28 @@ private:
 		visited[u] = false;
 
 	}
+
+	void deleteEdge(Edge* deletingEdge) {
+		if (edgeCount > 1) {
+			if (deletingEdge == pEdgeStart) {
+				pEdgeStart = deletingEdge->next;
+				deletingEdge->next->pred = nullptr;
+			}
+			if (deletingEdge == pEdgeFinish and deletingEdge != pEdgeStart) {
+				pEdgeFinish = deletingEdge->pred;
+				deletingEdge->pred->next = nullptr;
+			}
+			else {
+				deletingEdge->pred->next = deletingEdge->next;
+				deletingEdge->next->pred = deletingEdge->pred;
+			}
+		}
+		cout << "[deleteEdge] Дуга: " << deletingEdge->lable;
+		deletingEdge->in->deleteNodeEdges(deletingEdge->out, 0);
+		deletingEdge->out->deleteNodeEdges(deletingEdge->in, 1);
+		delete deletingEdge;
+		edgeCount--;
+	}
 	void getNodes(char c[20]) {
 		char* next_token1 = NULL; // Токен нужен для работы strtok_s
 		char* pch = strtok_s(c, " ", &next_token1);
@@ -304,7 +379,7 @@ private:
 		}
 		else {
 			ppredEdge->next = ptecEdge;
-			ptecEdge->pred = ptecEdge;
+			ptecEdge->pred = ppredEdge;
 		}
 
 		ptecEdge->indexOut = indexOut;
@@ -317,6 +392,7 @@ private:
 		ptecEdge->out->refreshNodeEdges(ptecEdge->in, 1);
 		ppredEdge = ptecEdge;
 		pEdgeFinish = ptecEdge;
+		edgeCount++;
 		
 	}
 
@@ -378,7 +454,24 @@ private:
 		cout << "\n[searchNodes] Нет вершины с таким индексом!\n";
 		return nullptr;
 	}
+
+	Edge* searchEdge(Node* connectedNode) {
+		ptecEdge = pEdgeStart;
+
+		while (1) {
+			if (ptecEdge->in == connectedNode or ptecEdge->out == connectedNode) {
+				return ptecEdge;
+			}
+			if (ptecEdge == pEdgeFinish) break;
+			ptecEdge = ptecEdge->next;
+		}
+
+		cout << "\n[searchEdge] Нет дуги с такой вершиной!\n";
+		return nullptr;
+	}
 };
+
+//------------------------------------------------------------ Работа с меню ------------------------------------------------------------------------------
 
 
 class Menu {
@@ -388,6 +481,14 @@ public:
 	Menu(){
 		ptecGraph = nullptr;
 		MainMenu();
+	}
+	~Menu() {
+		ptecGraph = pStartGraph;
+		for (int i = 0; i < GraphCount - 1; i++) {
+			ptecGraph = ptecGraph->next;
+			delete ptecGraph->pred;
+		}
+		delete ptecGraph;
 	}
 private:
 	
@@ -403,6 +504,9 @@ private:
 			{
 			case('1'):
 				LoadGraph();
+				break;
+			case('2'):
+				exit(0);
 				break;
 			default:
 				cout << "Нет такого действия!\n\n";
@@ -433,6 +537,9 @@ private:
 				cout << "Какой граф хотите открыть?\n";
 				cin >> index;
 				OpenGraph(index);
+			case('3'):
+				exit(0);
+				break;
 			default:
 				cout << "Нет такого действия!\n\n";
 				MainMenu();
