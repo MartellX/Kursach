@@ -25,7 +25,7 @@ public:
 	Node() {
 		toNode = new Node*[0];
 		outNode = new Node*[0];
-		NodeBuffer = new Node * [0];
+		NodeBuffer = new Node* [0];
 		toNodeCount = 0;
 		outNodeCount = 0;
 		
@@ -36,7 +36,7 @@ public:
 
 
 	void refreshNodeEdges(Node* connectedNode, int vector) { // vector означает направление (0 - входит в данную вершину, 1 - выходит из данной вершины)
-		//cout << "Node[" << index << "]\n";
+		cout << "Node[" << index << "]\n";
 		if (vector) {
 			toBuffer(toNode, toNodeCount);
 			//delete[toNodeCount] toNode;
@@ -73,8 +73,8 @@ public:
 			for (int i = 0; i < outNodeCount; i++) {
 				if (outNode[i] == connectedNode) index = i;
 			}
-			toNodeCount--;
-			outNode = new Node * [toNodeCount];
+			outNodeCount--;
+			outNode = new Node * [outNodeCount];
 			outBuffer(outNode, outNodeCount, index);
 		}
 		//delete[] NodeBuffer;
@@ -367,7 +367,7 @@ private:
 		
 		createEdge(nodeOut, nodeIn, Lable);
 
-		//printf("%d %d %d\n", nodeOut, nodeIn, Lable);
+		printf("%d %d %d\n", nodeOut, nodeIn, Lable);
 	}
 
 	void createEdge(int indexOut, int indexIn, int Lable) { // —оздание списка дуг
