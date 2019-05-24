@@ -201,7 +201,7 @@ public:
 		pathsCount = 0;
 		for (int i = 0; i < nodeCount; i++) {
 			for (int j = 0; j < nodeCount; j++) {
-					printAllPaths(i+1, j+1);
+					printAllPaths(i, j);
 			}
 		}
 
@@ -210,14 +210,14 @@ public:
 
 	void printAllPaths(int s, int d) {
 		// —оздаем массив посещенности дл€ всех вершин
-		bool* visited = new bool[nodeCount+1];
+		bool* visited = new bool[nodeCount];
 
 		// —оздаем массив дл€ хранени€ путей
-		string* path = new string[nodeCount+1];
+		string* path = new string[nodeCount];
 		int path_index = 0; // Initialize path[] as empty 
 		int flagNode = 0;
 		// ќтмечаем все вершины непосещенными
-		for (int i = 0; i <= nodeCount; i++)
+		for (int i = 0; i < nodeCount; i++)
 			visited[i] = false;
 
 		// ¬ызываем рекурсивную функцию, чтобы выводить все пути 
@@ -291,7 +291,7 @@ public:
 private: 
 
 	void printAllPathsUtil(int u, int d, bool visited[], string path[], int& path_index, int& StartNode, int& flagNode) {
-		Node* uNode = searchNode(u); //Ќаходим адрес вершины, с которой работаем
+		Node* uNode = searchNode(u+1); //Ќаходим адрес вершины, с которой работаем
 
 		
 		path[path_index] = uNode->label; //«аписываем в путь метку вершины
@@ -315,9 +315,9 @@ private:
 				visited[u] = true;
 			}
 
-			for (int i = 0; i < uNode->toNodeCount; i++) { //ƒостаем количество смежных вершин из данной вершины
-				if (!visited[uNode->toNode[i]->index]) //≈сли не посещали следующую смежну вершину, переходим к ней
-					printAllPathsUtil(uNode->toNode[i]->index, d, visited, path, path_index, StartNode, flagNode); // ищем количество путей уже из данной вершины в конечную.
+			for (int i = 0; i < nodeCount; i++) { //ƒостаем количество смежных вершин из данной вершины
+				if (!visited[i] and ConnectivityMatrix[u][i]==1) //≈сли не посещали следующую смежну вершину, переходим к ней
+					printAllPathsUtil(i, d, visited, path, path_index, StartNode, flagNode); // ищем количество путей уже из данной вершины в конечную.
 			}
 		}
 		path_index--;
