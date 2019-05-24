@@ -65,7 +65,7 @@ public:
 			}
 			toNodeCount--;
 			toNode = new Node * [toNodeCount];
-			outBuffer(toNode, toNodeCount,index);
+			outBuffer(toNode, toNodeCount+1,index);
 		}
 		else {
 			toBuffer(outNode, outNodeCount);
@@ -75,7 +75,7 @@ public:
 			}
 			outNodeCount--;
 			outNode = new Node * [outNodeCount];
-			outBuffer(outNode, outNodeCount, index);
+			outBuffer(outNode, outNodeCount+1, index);
 		}
 		//delete[] NodeBuffer;
 	}
@@ -123,9 +123,11 @@ private:
 	}
 
 	void outBuffer(Node** array, int n, int index) {
+		int k = 0;
 		for (int i = 0; i < n; i++) {
 			if (i != index) {
-				array[i] = NodeBuffer[i];
+				array[k] = NodeBuffer[i];
+				k++;
 			}
 		}
 	}
@@ -176,8 +178,16 @@ public:
 			getNodes(c);
 			graphFile.getline(c, 20);
 		}
+
+		ConnectivityMatrix = new int* [nodeCount];
+		for (int i = 0; i < nodeCount; i++)
+		{
+			ConnectivityMatrix[i] = new int[nodeCount];
+			for (int j = 0; j < nodeCount; j++) {
+				ConnectivityMatrix[i][j] = 0;
+			}
+		}
 		
-		ConnectivityMatrix = new int*[nodeCount];
 		cout << "Количество вершин: " << nodeCount<<endl;
 		graphFile.getline(c, 20);
 		while (!(graphFile.eof()||c[0]=='\n')) 
@@ -188,7 +198,7 @@ public:
 		//searchNode(1)->showConnectedNodes();
 		graphFile.close();
 
-		refreshMatrix();
+		
 	};
 
 	int indexGraph; // Индекс графа
@@ -215,7 +225,14 @@ public:
 		// Создаем массив для хранения путей
 		string* path = new string[nodeCount];
 		int path_index = 0; // Initialize path[] as empty 
-		int flagNode = 0;
+		int flagNode;
+		if (s==d){
+			flagNode = 0;
+		}
+		else {
+			flagNode = 1;
+		}
+		
 		// Отмечаем все вершины непосещенными
 		for (int i = 0; i < nodeCount; i++)
 			visited[i] = false;
@@ -235,7 +252,7 @@ public:
 		} while (searchNode(label) != nullptr);
 		nodeCount++;
 		createNode(nodeCount, label);
-		refreshMatrix();
+		expandMatrix();
 	}
 
 	void addEdge() {
@@ -253,7 +270,6 @@ public:
 		out = searchNode(outLabel)->index;
 		to = searchNode(toLabel)->index;
 		createEdge(out, to, Weight);
-		refreshMatrix();
 
 		edgeCount++;
 	}
@@ -280,13 +296,14 @@ public:
 			}
 			
 			delete ptecNode->pred;
+			delete[] ConnectivityMatrix[i];
 		}
 		Edge* tempEdge = searchEdge(ptecNode);
 		if (tempEdge != nullptr) {
 			deleteEdge(tempEdge);
 		}
 		delete ptecNode;
-		delete ConnectivityMatrix;
+		delete[] ConnectivityMatrix;
 	}
 private: 
 
@@ -315,7 +332,7 @@ private:
 				visited[u] = true;
 			}
 
-			for (int i = 0; i < nodeCount; i++) { //Достаем количество смежных вершин из данной вершины
+			for (int i = 0; i < nodeCount; i++) { //Перебираем массив смежности
 				if (!visited[i] and ConnectivityMatrix[u][i]==1) //Если не посещали следующую смежну вершину, переходим к ней
 					printAllPathsUtil(i, d, visited, path, path_index, StartNode, flagNode); // ищем количество путей уже из данной вершины в конечную.
 			}
@@ -325,27 +342,7 @@ private:
 
 	}
 
-	void deleteEdge(Edge* deletingEdge) {
-		if (edgeCount > 1) {
-			if (deletingEdge == pEdgeStart) {
-				pEdgeStart = deletingEdge->next;
-				deletingEdge->next->pred = nullptr;
-			}
-			if (deletingEdge == pEdgeFinish and deletingEdge != pEdgeStart) {
-				pEdgeFinish = deletingEdge->pred;
-				deletingEdge->pred->next = nullptr;
-			}
-			else {
-				deletingEdge->pred->next = deletingEdge->next;
-				deletingEdge->next->pred = deletingEdge->pred;
-			}
-		}
-		cout << "[deleteEdge] Дуга: " << deletingEdge->lable;
-		deletingEdge->in->deleteNodeEdges(deletingEdge->out, 0);
-		deletingEdge->out->deleteNodeEdges(deletingEdge->in, 1);
-		delete deletingEdge;
-		edgeCount--;
-	}
+	
 	void getNodes(char c[20]) {
 		char* next_token1 = NULL; // Токен нужен для работы strtok_s
 		char* pch = strtok_s(c, " ", &next_token1);
@@ -394,7 +391,34 @@ private:
 		pEdgeFinish = ptecEdge;
 		edgeCount++;
 		
+		ConnectivityMatrix[indexOut - 1][indexIn - 1] = 1;
 	}
+
+	void deleteEdge(Edge* deletingEdge) {
+		if (edgeCount > 1) {
+			if (deletingEdge == pEdgeStart) {
+				pEdgeStart = deletingEdge->next;
+				deletingEdge->next->pred = nullptr;
+			}
+			else if (deletingEdge == pEdgeFinish and deletingEdge != pEdgeStart) {
+				pEdgeFinish = deletingEdge->pred;
+				deletingEdge->pred->next = nullptr;
+			}
+			else {
+				deletingEdge->pred->next = deletingEdge->next;
+				deletingEdge->next->pred = deletingEdge->pred;
+			}
+		}
+		cout << "[deleteEdge] Дуга: " << deletingEdge->lable;
+		ConnectivityMatrix[deletingEdge->indexOut - 1][deletingEdge->indexIn - 1] = 0;
+		/*if (deletingEdge->in != nullptr and deletingEdge->out != nullptr) {
+			deletingEdge->in->deleteNodeEdges(deletingEdge->out, 0);
+			deletingEdge->out->deleteNodeEdges(deletingEdge->in, 1);
+		}*/
+		delete deletingEdge;
+		edgeCount--;
+	}
+
 
 	void createNode(int index, string label){ //Создание объектов вершин
 		ptecNode = new Node;
@@ -414,17 +438,24 @@ private:
 		pNodeFinish = ptecNode;
 	}
 
-	void refreshMatrix() {
-		delete ConnectivityMatrix;
+	void expandMatrix() {
+		
+		for (int i = 0; i < nodeCount-1; i++) {
+			delete[] ConnectivityMatrix[i];
+		}
+
+		delete[] ConnectivityMatrix;
 		ConnectivityMatrix = new int* [nodeCount];
 		for (int i = 0; i < nodeCount; i++)
 		{
+			
 			ConnectivityMatrix[i] = new int[nodeCount];
 			for (int j = 0; j < nodeCount; j++) {
 				ConnectivityMatrix[i][j] = (searchNode(i + 1)->isConnectedTo(j + 1));
 			}
 		}
 	}
+
 
 	Node* searchNode(int index) { // Фукнция возвращающая адрес объекта с определенным индексом
 		ptecNode = pNodeStart;
@@ -565,6 +596,7 @@ private:
 		}
 		ptecGraph->indexGraph = GraphCount;
 		ppredGraph = ptecGraph;
+		pFinishGraph = ptecGraph;
 		graph(ptecGraph);
 	}
 
@@ -651,10 +683,20 @@ private:
 	}
 
 	void closeGraph(Graph* closingGraph) {
-		if (closingGraph->pred != nullptr)
-		closingGraph->pred->next = closingGraph->next;
-		if (closingGraph->next != nullptr)
-		closingGraph->next->pred = closingGraph->pred;
+		if (GraphCount > 1) {
+			if (closingGraph == pStartGraph) {
+				pStartGraph = closingGraph->next;
+				closingGraph->next->pred = nullptr;
+			}
+			else if (closingGraph == pFinishGraph and closingGraph != pStartGraph) {
+				pFinishGraph = closingGraph->pred;
+				closingGraph->pred->next = nullptr;
+			}
+			else {
+				closingGraph->pred->next = closingGraph->next;
+				closingGraph->next->pred = closingGraph->pred;
+			}
+		}
 		delete closingGraph;
 
 		GraphCount--;
