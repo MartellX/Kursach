@@ -7,6 +7,7 @@
 #include <string>
 #include <fstream>
 #include <string.h>
+#include <iomanip>
 
 using namespace std;
 
@@ -171,6 +172,12 @@ public:
 
 	int nodeCount;	// Количество вершин в графе
 	int edgeCount;
+	int indexGraph; // Индекс графа
+	Node* pNodeStart = nullptr, * ppredNode = nullptr, * ptecNode = nullptr, * pNodeFinish = nullptr;
+	Edge* pEdgeStart = nullptr, * ppredEdge = nullptr, * ptecEdge = nullptr, * pEdgeFinish = nullptr;
+	Graph* pred = nullptr, * next = nullptr;
+	int** ConnectivityMatrix;
+
 	Graph() {
 		nodeCount = 0;
 		cout << "Укажите путь к графу (.tgf): ";
@@ -213,11 +220,7 @@ public:
 		
 	};
 
-	int indexGraph; // Индекс графа
-	Node* pNodeStart = nullptr, * ppredNode = nullptr, * ptecNode = nullptr, * pNodeFinish = nullptr;
-	Edge* pEdgeStart = nullptr, * ppredEdge = nullptr, * ptecEdge = nullptr, * pEdgeFinish = nullptr;
-	Graph* pred = nullptr, * next = nullptr;
-	int** ConnectivityMatrix;
+	
 
 	void printAllPathsInGraph() {
 		pathsCount = 0;
@@ -305,6 +308,32 @@ public:
 
 		deleteNode(searchNode(deletingLabel));
 		reduceMatrix();
+	}
+
+	void removeEdge() {
+		int deletingWeight;
+		do {
+			cout << "Введите вес дуги: ";
+			cin >> deletingWeight;
+		} while (searchEdge(deletingWeight) == nullptr);
+
+		deleteEdge(searchEdge(deletingWeight));
+	}
+
+	void ShowMatrix() {
+		cout << setw(3)<<" ";
+		for (int i = 0; i < nodeCount; i++) {
+			cout <<" "<<setw(3)<<searchNode(i + 1)->label;
+		}
+		cout << endl;
+		for (int i = 0; i < nodeCount; i++) {
+			cout << setw(3)<< searchNode(i + 1)->label <<" ";
+			for (int j = 0; j < nodeCount; j++) {
+				cout << setw(3) << ConnectivityMatrix[i][j] << " ";
+			}
+			cout << endl;
+		}
+		system("pause");
 	}
 
 	~Graph() {
@@ -578,6 +607,21 @@ private:
 		cout << "\n[searchEdge] Нет дуги с такой вершиной!\n";
 		return nullptr;
 	}
+
+	Edge* searchEdge(int Weight) {
+		ptecEdge = pEdgeStart;
+
+		while (1) {
+			if (ptecEdge->lable == Weight) {
+				return ptecEdge;
+			}
+			if (ptecEdge == pEdgeFinish) break;
+			ptecEdge = ptecEdge->next;
+		}
+
+		cout << "\n[searchEdge] Нет дуги с таким весом!\n";
+		return nullptr;
+	}
 };
 
 //------------------------------------------------------------ Работа с меню ------------------------------------------------------------------------------
@@ -688,6 +732,7 @@ private:
 		cout << "2. Добавить вершину\n";
 		cout << "3. Добавить дугу\n";
 		cout << "4. Удалить вершину\n";
+		cout << "5. Удалить дугу\n";
 		cout << "6. Изменить вершину\n";
 		cout << "7. Изменить дугу\n";
 		cout << "8. Индекс первой вершины в графе \n";
@@ -717,12 +762,16 @@ private:
 			ptecGraph->removeNode();
 			graph(ptecGraph);
 			break;
+		case('5'):
+			ptecGraph->removeEdge();
+			graph(ptecGraph);
+			break;
 		case ('6'):
 			ptecGraph->changeNode();
 			graph(ptecGraph);
 			break;
 		case('m'):
-			ShowMatrix();
+			ptecGraph->ShowMatrix();
 			graph(ptecGraph);
 			break;
 		case('q'):
@@ -738,18 +787,6 @@ private:
 		MainMenu();
 	}
 	
-	void ShowMatrix() {
-		system("cls");
-
-
-		for (int i = 0; i < ptecGraph->nodeCount; i++) {
-			for (int j = 0; j < ptecGraph->nodeCount; j++) {
-				cout << ptecGraph->ConnectivityMatrix[i][j] << " ";
-			}
-			cout << endl;
-		}
-		system("pause");
-	}
 
 	void OpenGraph(int index) {
 		ptecGraph = pStartGraph;
