@@ -23,9 +23,9 @@ public:
 	int toNodeCount, outNodeCount;
 
 	Node() {
-		toNode = new Node*[0];
-		outNode = new Node*[0];
-		NodeBuffer = new Node* [0];
+		toNode = new Node*(0);
+		outNode = new Node*(0);
+		NodeBuffer = new Node* (0);
 		toNodeCount = 0;
 		outNodeCount = 0;
 		
@@ -39,7 +39,7 @@ public:
 		cout << "Node[" << index << "]\n";
 		if (vector) {
 			toBuffer(toNode, toNodeCount);
-			//delete[toNodeCount] toNode;
+			delete[] toNode;
 			toNodeCount++;
 			toNode = new Node*[toNodeCount];
 			outBuffer(toNode, toNodeCount-1);
@@ -47,37 +47,49 @@ public:
 		}
 		else {
 			toBuffer(outNode, outNodeCount);
-			//delete[outNodeCount] outNode;
+			delete[] outNode;
 			outNodeCount++;
-			outNode = new Node*[toNodeCount];
+			outNode = new Node*[outNodeCount];
 			outBuffer(outNode, outNodeCount - 1);
 			outNode[outNodeCount - 1] = connectedNode;
 		}
 		//delete[] NodeBuffer;
 	}
 	void deleteNodeEdges(Node* connectedNode, int vector) {
-		
+		int deletedIndex;
 		if (vector) {
 			toBuffer(toNode, toNodeCount);
 			for (int i = 0; i < toNodeCount; i++) {
-				if (toNode[i] == connectedNode) index = i;
+				if (toNode[i] == connectedNode) {
+					deletedIndex = i;
+					break;
+				}
 			}
 			toNodeCount--;
-			delete toNode;
-			toNode = new Node * [toNodeCount];
-			outBuffer(toNode, toNodeCount+1,index);
+			if (toNodeCount > 0) {
+				delete[] toNode;
+				toNode = new Node * [toNodeCount];
+				outBuffer(toNode, toNodeCount + 1, deletedIndex);
+			}
 		}
 		else {
 			toBuffer(outNode, outNodeCount);
 			for (int i = 0; i < outNodeCount; i++) {
-				if (outNode[i] == connectedNode) index = i;
+				if (outNode[i] == connectedNode) {
+					deletedIndex = i;
+					break;
+				}
 			}
 			outNodeCount--;
-			delete outNode;
-			outNode = new Node * [outNodeCount];
-			outBuffer(outNode, outNodeCount+1, index);
+			delete[] outNode;
+			if (outNodeCount > 0) {
+				
+				outNode = new Node * [outNodeCount];
+				outBuffer(outNode, outNodeCount + 1, deletedIndex);
+			}
+			
 		}
-		//delete[] NodeBuffer;
+		delete[] NodeBuffer;
 	}
 
 	bool isConnectedTo(int index) {
@@ -105,11 +117,11 @@ public:
 		}
 	}
 		
-
+	~Node() {
+	}
 private:
 
 	void toBuffer(Node** array, int n) {
-		delete [] NodeBuffer;
 		NodeBuffer = new Node*[n];
 		for (int i = 0; i < n; i++) {
 			NodeBuffer[i] = array[i];
@@ -292,25 +304,19 @@ public:
 		} while (searchNode(deletingLabel) == nullptr);
 
 		deleteNode(searchNode(deletingLabel));
+		reduceMatrix();
 	}
 
 	~Graph() {
 		ptecNode = pNodeStart;
 		for (int i = 0; i < nodeCount-1; i++) {
-			Edge* tempEdge = searchEdge(ptecNode->pred);
-			ptecNode = ptecNode->next;
-			if (tempEdge != nullptr) {
-				deleteEdge(tempEdge);
-			}
 			
-			delete ptecNode->pred;
+			ptecNode = ptecNode->next;
+			deleteNode(ptecNode->pred);
 			delete[] ConnectivityMatrix[i];
 		}
-		Edge* tempEdge = searchEdge(ptecNode);
-		if (tempEdge != nullptr) {
-			deleteEdge(tempEdge);
-		}
-		delete ptecNode;
+
+		deleteNode(ptecNode);
 		delete[] ConnectivityMatrix;
 	}
 private: 
@@ -417,7 +423,7 @@ private:
 				deletingEdge->next->pred = deletingEdge->pred;
 			}
 		}
-		cout << "[deleteEdge] Дуга: " << deletingEdge->lable;
+		cout << "[deleteEdge] Дуга: " << deletingEdge->lable<<endl;
 		ConnectivityMatrix[deletingEdge->indexOut - 1][deletingEdge->indexIn - 1] = 0;
 		if (deletingEdge->in != nullptr and deletingEdge->out != nullptr) {
 			deletingEdge->in->deleteNodeEdges(deletingEdge->out, 0);
@@ -461,12 +467,39 @@ private:
 					deletingNode->next->pred = deletingNode->pred;
 				}
 			}
-			cout << "[deleteEdge] Вершина: " << deletingNode->label;
-			for (int i = 0; i<(deletingNode->outNodeCount+deletingNode->toNodeCount); i++)
+			cout << "[deleteEdge] Вершина: " << deletingNode->label<<endl;
+			int countNodeEdge = deletingNode->outNodeCount + deletingNode->toNodeCount;
+			for (int i = 0; i<(countNodeEdge); i++)
 				deleteEdge(searchEdge(deletingNode));
+			refreshIndex(deletingNode->index);
 			delete deletingNode;
 			nodeCount--;
 	}
+
+	void refreshIndex(int deletedIndex) {
+		Node* tempPtecNode = pNodeStart;
+		Edge* tempPtecEdge = pEdgeStart;
+		while (1) {
+			if (tempPtecNode->index > deletedIndex) {
+				tempPtecNode->index--;
+			}
+			if (tempPtecNode == pNodeFinish) break;
+			tempPtecNode = tempPtecNode->next;
+		}
+
+		while (1) {
+			if (tempPtecEdge->indexIn > deletedIndex) {
+				tempPtecEdge->indexIn--;
+			}
+			if (tempPtecEdge->indexOut > deletedIndex) {
+				tempPtecEdge->indexOut--;
+			}
+			if (tempPtecEdge == pEdgeFinish) break;
+			tempPtecEdge = tempPtecEdge->next;
+		}
+
+	}
+	
 	void expandMatrix() {
 		
 		for (int i = 0; i < nodeCount-1; i++) {
@@ -485,30 +518,46 @@ private:
 		}
 	}
 
+	void reduceMatrix() {
+		for (int i = 0; i < nodeCount + 1; i++) {
+			delete[] ConnectivityMatrix[i];
+		}
+
+		delete[] ConnectivityMatrix;
+		ConnectivityMatrix = new int* [nodeCount];
+		for (int i = 0; i < nodeCount; i++)
+		{
+
+			ConnectivityMatrix[i] = new int[nodeCount];
+			for (int j = 0; j < nodeCount; j++) {
+				ConnectivityMatrix[i][j] = (searchNode(i + 1)->isConnectedTo(j + 1));
+			}
+		}
+	}
 
 	Node* searchNode(int index) { // Фукнция возвращающая адрес объекта с определенным индексом
-		ptecNode = pNodeStart;
+		Node* tempPtecNode = pNodeStart;
 		
 		while (1) {
-			if (ptecNode->index == index) {
-				return ptecNode;
+			if (tempPtecNode->index == index) {
+				return tempPtecNode;
 			}
-			if (ptecNode == pNodeFinish) break;
-			ptecNode = ptecNode->next;
+			if (tempPtecNode == pNodeFinish) break;
+			tempPtecNode = tempPtecNode->next;
 		}
 
 		cout << "\n[searchNodes] Нет вершины с таким индексом!\n";
 	}
 
 	Node* searchNode(string label) { // Фукнция возвращающая адрес объекта с определенным индексом
-		ptecNode = pNodeStart;
+		Node* tempPtecNode = pNodeStart;
 
 		while (1) {
-			if (ptecNode->label == label) {
-				return ptecNode;
+			if (tempPtecNode->label == label) {
+				return tempPtecNode;
 			}
-			if (ptecNode == pNodeFinish) break;
-			ptecNode = ptecNode->next;
+			if (tempPtecNode == pNodeFinish) break;
+			tempPtecNode = tempPtecNode->next;
 		}
 
 		cout << "\n[searchNodes] Нет вершины с таким индексом!\n";
