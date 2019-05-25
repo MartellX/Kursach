@@ -59,21 +59,21 @@ public:
 		
 		if (vector) {
 			toBuffer(toNode, toNodeCount);
-			//delete outNode;
 			for (int i = 0; i < toNodeCount; i++) {
 				if (toNode[i] == connectedNode) index = i;
 			}
 			toNodeCount--;
+			delete toNode;
 			toNode = new Node * [toNodeCount];
 			outBuffer(toNode, toNodeCount+1,index);
 		}
 		else {
 			toBuffer(outNode, outNodeCount);
-			//delete outNode;
 			for (int i = 0; i < outNodeCount; i++) {
 				if (outNode[i] == connectedNode) index = i;
 			}
 			outNodeCount--;
+			delete outNode;
 			outNode = new Node * [outNodeCount];
 			outBuffer(outNode, outNodeCount+1, index);
 		}
@@ -284,7 +284,15 @@ public:
 		searchNode(oldLabel)->label = newLabel;
 	}
 
+	void removeNode() {
+		string deletingLabel;
+		do {
+			cout << "Введите название удаляемой вершины: ";
+			cin >> deletingLabel;
+		} while (searchNode(deletingLabel) == nullptr);
 
+		deleteNode(searchNode(deletingLabel));
+	}
 
 	~Graph() {
 		ptecNode = pNodeStart;
@@ -411,10 +419,10 @@ private:
 		}
 		cout << "[deleteEdge] Дуга: " << deletingEdge->lable;
 		ConnectivityMatrix[deletingEdge->indexOut - 1][deletingEdge->indexIn - 1] = 0;
-		/*if (deletingEdge->in != nullptr and deletingEdge->out != nullptr) {
+		if (deletingEdge->in != nullptr and deletingEdge->out != nullptr) {
 			deletingEdge->in->deleteNodeEdges(deletingEdge->out, 0);
 			deletingEdge->out->deleteNodeEdges(deletingEdge->in, 1);
-		}*/
+		}
 		delete deletingEdge;
 		edgeCount--;
 	}
@@ -438,6 +446,27 @@ private:
 		pNodeFinish = ptecNode;
 	}
 
+	void deleteNode(Node* deletingNode) {
+			if (nodeCount > 1) {
+				if (deletingNode == pNodeStart) {
+					pNodeStart = deletingNode->next;
+					deletingNode->next->pred = nullptr;
+				}
+				else if (deletingNode == pNodeFinish and deletingNode != pNodeStart) {
+					pNodeFinish = deletingNode->pred;
+					deletingNode->pred->next = nullptr;
+				}
+				else {
+					deletingNode->pred->next = deletingNode->next;
+					deletingNode->next->pred = deletingNode->pred;
+				}
+			}
+			cout << "[deleteEdge] Вершина: " << deletingNode->label;
+			for (int i = 0; i<(deletingNode->outNodeCount+deletingNode->toNodeCount); i++)
+				deleteEdge(searchEdge(deletingNode));
+			delete deletingNode;
+			nodeCount--;
+	}
 	void expandMatrix() {
 		
 		for (int i = 0; i < nodeCount-1; i++) {
@@ -609,14 +638,14 @@ private:
 		cout << "1. Выполнить задание по варианту\n";
 		cout << "2. Добавить вершину\n";
 		cout << "3. Добавить дугу\n";
-		//cout << "3. Удалить вершину\n";
-		cout << "4. Изменить вершину\n";
-		cout << "5. Изменить дугу\n";
-		cout << "6. Индекс первой вершины в графе \n";
-		cout << "7. Индекс вершины, смежной с выбранной вершиной, следующий за выбранным индексом\n";
+		cout << "4. Удалить вершину\n";
+		cout << "6. Изменить вершину\n";
+		cout << "7. Изменить дугу\n";
+		cout << "8. Индекс первой вершины в графе \n";
+		cout << "9. Индекс вершины, смежной с выбранной вершиной, следующий за выбранным индексом\n";
 		//cout << "8. Вершина с индексом i из множества вершин, смежных с v\n";
-		cout << "8. Матрица смежности графа \n";
-		cout << "9. Закрыть граф\n";
+		cout << "m. Матрица смежности графа \n";
+		cout << "q. Закрыть граф\n";
 		cout << "0. Вернуться в главное меню\n";
 		char choice = _getch();
 
@@ -635,15 +664,19 @@ private:
 			ptecGraph->addEdge();
 			graph(ptecGraph);
 			break;
-		case ('4'):
+		case('4'):
+			ptecGraph->removeNode();
+			graph(ptecGraph);
+			break;
+		case ('6'):
 			ptecGraph->changeNode();
 			graph(ptecGraph);
 			break;
-		case('8'):
+		case('m'):
 			ShowMatrix();
 			graph(ptecGraph);
 			break;
-		case('9'):
+		case('q'):
 			closeGraph(ptecGraph);
 			break;
 		case('0'):
