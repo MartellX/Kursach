@@ -690,7 +690,7 @@ private:
 
 	int FIRST(Node* v) {
 		if (v->toNodeCount > 0) return v->toNode[0]->index;
-		else return -1
+		else return -1;
 	}
 
 	int NEXT(int v, int i) {
@@ -701,14 +701,14 @@ private:
 	}
 
 	int NEXT(Node* v, int i) {
-		if (v->toNodeCount > i) return toNode[i]->index;
+		if (v->toNodeCount > i) return v->toNode[i]->index;
 		else return -1;
 	}
 
 
-	Node* VERTEX(Node v, int i) {
+	Node* VERTEX(Node* v, int i) {
 		for (int j = 0; j < v->toNodeCount; j++) {
-			if (i == v->toNode[j]) return v->toNode[j];
+			if (i == v->toNode[j]->index) return v->toNode[j];
 		}
 	}
 };
