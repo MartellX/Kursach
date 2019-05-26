@@ -368,6 +368,23 @@ public:
 		system("pause");
 	}
 
+	void nextTest() {
+		int v, i, returned;
+		string vLabel;
+		Node* vNode;
+		cout << "Введите название вершины: ";
+		cin >> vLabel;
+		cout << "Введите индекс: ";
+		cin >> i;
+		returned = NEXT(searchNode(vLabel)->index - 1, i);
+		if (returned != NULL) {
+			Node* iNode = searchNode(returned + 1);
+			cout << "Возвращена вершина с индексом '" << iNode->index << "' и названием '" << iNode->label << "'\n";
+		}
+		else cout << "Нет смежных вершин!\n";
+		system("pause");
+	}
+
 	~Graph() {
 		ptecNode = pNodeStart;
 		for (int i = 0; i < nodeCount-1; i++) {
@@ -670,6 +687,13 @@ private:
 		cout << "\n[searchEdge] Нет дуги с такими вершинами!\n";
 		return nullptr;
 	}
+
+	int NEXT(int v, int i) {
+		for (i; i < nodeCount; i++) {
+			if (ConnectivityMatrix[v][i]) return i;
+		}
+		return NULL;
+	}
 };
 
 //------------------------------------------------------------ Работа с меню ------------------------------------------------------------------------------
@@ -783,9 +807,9 @@ private:
 		cout << "5. Удалить дугу\n";
 		cout << "6. Изменить вершину\n";
 		cout << "7. Изменить дугу\n";
-		cout << "8. [FIRST] Индекс первой вершины в графе \n";
-		cout << "9. [NEXT] Индекс вершины, смежной с выбранной вершиной, следующий за выбранным индексом\n";
-		cout << "8. [VERTEX] Вершина с индексом i из множества вершин, смежных с v\n";
+		cout << "f. [FIRST] Индекс первой вершины в графе \n";
+		cout << "n. [NEXT] Индекс вершины, смежной с выбранной вершиной, следующий за выбранным индексом\n";
+		cout << "v. [VERTEX] Вершина с индексом i из множества вершин, смежных с v\n";
 		cout << "m. Матрица смежности графа \n";
 		cout << "q. Закрыть граф\n";
 		cout << "0. Вернуться в главное меню\n";
@@ -820,6 +844,14 @@ private:
 			break;
 		case('7'):
 			ptecGraph->changeEdge();
+			graph(ptecGraph);
+			break;
+		case('f'):
+			FIRST(ptecGraph);
+			graph(ptecGraph);
+			break;
+		case('n'):
+			ptecGraph->nextTest();
 			graph(ptecGraph);
 			break;
 		case('m'):
@@ -871,6 +903,12 @@ private:
 		delete closingGraph;
 
 		GraphCount--;
+	}
+
+	void FIRST(Graph* graph) {
+		cout << "Индекс первой вершины в графе " << graph->indexGraph << ": "<<graph->pNodeStart->index<<endl;
+		cout << "Её название: " << graph->pNodeStart->label<<endl;
+		system("pause");
 	}
 };
 
