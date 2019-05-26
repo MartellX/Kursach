@@ -688,11 +688,28 @@ private:
 		return nullptr;
 	}
 
+	int FIRST(Node* v) {
+		if (v->toNodeCount > 0) return v->toNode[0]->index;
+		else return -1
+	}
+
 	int NEXT(int v, int i) {
 		for (i; i < nodeCount; i++) {
 			if (ConnectivityMatrix[v][i]) return i;
 		}
 		return NULL;
+	}
+
+	int NEXT(Node* v, int i) {
+		if (v->toNodeCount > i) return toNode[i]->index;
+		else return -1;
+	}
+
+
+	Node* VERTEX(Node v, int i) {
+		for (int j = 0; j < v->toNodeCount; j++) {
+			if (i == v->toNode[j]) return v->toNode[j];
+		}
 	}
 };
 
