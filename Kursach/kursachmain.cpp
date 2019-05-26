@@ -291,12 +291,40 @@ public:
 
 	void changeNode() {
 		string oldLabel, newLabel;
-		cout << "Название какой вершины вы хотите поменять? (введите название)\n ";
-		cin >> oldLabel;
+		do {
+			cout << "Название какой вершины вы хотите поменять? (введите название)\n ";
+			cin >> oldLabel;
+		} while (searchNode(oldLabel) == nullptr);
 		cout << "На какое название?\n ";
 		cin >> newLabel;
 
 		searchNode(oldLabel)->label = newLabel;
+	}
+
+	void changeEdge() {
+		string outNode, inNode;
+		int newWeight;
+		Edge* tempEdge;
+		do{
+		cout << "Введите название начальной вершины дуги: ";
+		cin >> outNode;
+		cout << "Введите название конечной вершины дуги: ";
+		cin >> inNode;
+		tempEdge = searchEdge(outNode, inNode);
+		} while (tempEdge == nullptr);
+		cout << "Изменить вес дуги? (y/n)\n";
+		if (_getch() == 'y') {
+			cout << "Введите новый вес дуги: ";
+			cin >> newWeight;
+			tempEdge->lable = newWeight;
+		};
+		cout << "Изменить направление дуги? (y/n)\n";
+		if (_getch() == 'y') {
+			int tempWeight;
+			tempWeight = tempEdge->lable;
+			deleteEdge(tempEdge);
+			createEdge(searchNode(inNode)->index, searchNode(outNode)->index, tempWeight);
+		};
 	}
 
 	void removeNode() {
@@ -311,13 +339,17 @@ public:
 	}
 
 	void removeEdge() {
-		int deletingWeight;
+		string outNode, inNode;
+		Edge* deletingEdge;
 		do {
-			cout << "Введите вес дуги: ";
-			cin >> deletingWeight;
-		} while (searchEdge(deletingWeight) == nullptr);
+			cout << "Введите название начальной вершины удаляемой дуги: ";
+			cin >> outNode;
+			cout << "Введите название конечной вершины удаляемой дуги: ";
+			cin >> inNode;
+			deletingEdge = searchEdge(outNode, inNode);
+		} while (deletingEdge == nullptr);
 
-		deleteEdge(searchEdge(deletingWeight));
+		deleteEdge(deletingEdge);
 	}
 
 	void ShowMatrix() {
@@ -420,6 +452,7 @@ private:
 		else {
 			ppredEdge->next = ptecEdge;
 			ptecEdge->pred = ppredEdge;
+			pEdgeFinish->next = ptecEdge;
 		}
 
 		ptecEdge->indexOut = indexOut;
@@ -594,14 +627,14 @@ private:
 	}
 
 	Edge* searchEdge(Node* connectedNode) {
-		ptecEdge = pEdgeStart;
+		Edge* tempPtecEdge = pEdgeStart;
 
 		while (1) {
-			if (ptecEdge->in == connectedNode or ptecEdge->out == connectedNode) {
-				return ptecEdge;
+			if (tempPtecEdge->in == connectedNode or tempPtecEdge->out == connectedNode) {
+				return tempPtecEdge;
 			}
-			if (ptecEdge == pEdgeFinish) break;
-			ptecEdge = ptecEdge->next;
+			if (tempPtecEdge == pEdgeFinish) break;
+			tempPtecEdge = tempPtecEdge->next;
 		}
 
 		cout << "\n[searchEdge] Нет дуги с такой вершиной!\n";
@@ -609,17 +642,32 @@ private:
 	}
 
 	Edge* searchEdge(int Weight) {
-		ptecEdge = pEdgeStart;
+		Edge* tempPtecEdge = pEdgeStart;
 
 		while (1) {
-			if (ptecEdge->lable == Weight) {
-				return ptecEdge;
+			if (tempPtecEdge->lable == Weight) {
+				return tempPtecEdge;
 			}
-			if (ptecEdge == pEdgeFinish) break;
-			ptecEdge = ptecEdge->next;
+			if (tempPtecEdge == pEdgeFinish) break;
+			tempPtecEdge = tempPtecEdge->next;
 		}
 
 		cout << "\n[searchEdge] Нет дуги с таким весом!\n";
+		return nullptr;
+	}
+
+	Edge* searchEdge(string outNode, string inNode) {
+		Edge* tempPtecEdge = pEdgeStart;
+
+		while (1) {
+			if (tempPtecEdge->out->label == outNode and tempPtecEdge->in->label == inNode) {
+				return tempPtecEdge;
+			}
+			if (tempPtecEdge == pEdgeFinish) break;
+			tempPtecEdge = tempPtecEdge->next;
+		}
+
+		cout << "\n[searchEdge] Нет дуги с такими вершинами!\n";
 		return nullptr;
 	}
 };
@@ -735,9 +783,9 @@ private:
 		cout << "5. Удалить дугу\n";
 		cout << "6. Изменить вершину\n";
 		cout << "7. Изменить дугу\n";
-		cout << "8. Индекс первой вершины в графе \n";
-		cout << "9. Индекс вершины, смежной с выбранной вершиной, следующий за выбранным индексом\n";
-		//cout << "8. Вершина с индексом i из множества вершин, смежных с v\n";
+		cout << "8. [FIRST] Индекс первой вершины в графе \n";
+		cout << "9. [NEXT] Индекс вершины, смежной с выбранной вершиной, следующий за выбранным индексом\n";
+		cout << "8. [VERTEX] Вершина с индексом i из множества вершин, смежных с v\n";
 		cout << "m. Матрица смежности графа \n";
 		cout << "q. Закрыть граф\n";
 		cout << "0. Вернуться в главное меню\n";
@@ -768,6 +816,10 @@ private:
 			break;
 		case ('6'):
 			ptecGraph->changeNode();
+			graph(ptecGraph);
+			break;
+		case('7'):
+			ptecGraph->changeEdge();
 			graph(ptecGraph);
 			break;
 		case('m'):
