@@ -385,6 +385,21 @@ public:
 		system("pause");
 	}
 
+	void vertexTest() {
+		int v, i;
+		string vLabel;
+		Node* vNode, *returned;
+		cout << "Введите название вершины: ";
+		cin >> vLabel;
+		cout << "Введите индекс: ";
+		cin >> i;
+		returned = VERTEX(searchNode(vLabel), i);
+		if (returned != nullptr) {
+			cout << "Возвращена вершина с индексом '" << returned->index << "' и названием '" << returned->label << "'\n";
+		}
+		else cout << "Нет такой вершины!\n";
+		system("pause");
+	}
 	~Graph() {
 		ptecNode = pNodeStart;
 		for (int i = 0; i < nodeCount-1; i++) {
@@ -710,6 +725,7 @@ private:
 		for (int j = 0; j < v->toNodeCount; j++) {
 			if (i == v->toNode[j]->index) return v->toNode[j];
 		}
+		return nullptr;
 	}
 };
 
@@ -760,7 +776,7 @@ private:
 			cout << "Выберите действие: \n";
 			cout << "1. Загрузить граф из файла\n";
 			cout << "2. Посмотреть открытые графы\n";
-			cout << "3. Выйти\n";
+			cout << "0. Выйти\n";
 			char choice = _getch();
 			int index;
 			switch (choice)
@@ -779,7 +795,7 @@ private:
 				cout << "Какой граф хотите открыть?\n";
 				cin >> index;
 				OpenGraph(index);
-			case('3'):
+			case('0'):
 				exit(0);
 				break;
 			default:
@@ -869,6 +885,10 @@ private:
 			break;
 		case('n'):
 			ptecGraph->nextTest();
+			graph(ptecGraph);
+			break;
+		case('v'):
+			ptecGraph->vertexTest();
 			graph(ptecGraph);
 			break;
 		case('m'):
