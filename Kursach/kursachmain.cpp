@@ -11,6 +11,37 @@
 
 using namespace std;
 
+
+class UserString
+{
+public:
+	char* s;
+	UserString() 
+	{
+		s = new char[255]();
+	}
+	~UserString() 
+	{
+		delete[]s;
+	}
+	void operator=(char* _s)
+	{
+		strcpy_s(this->s,255, _s);
+	}
+	void operator=(const char* _s)
+	{
+		strcpy_s(this->s,255, _s);
+	}
+	void print()
+	{
+		cout << s;
+	}
+	void Format()
+	{
+		int len = strlen(s);
+		cout << len;
+	}
+};
 //------------------------------------------------------------ Работа с вершиной ------------------------------------------------------------------------------
 
 class Node {							
@@ -160,7 +191,7 @@ struct Edge {
 //------------------------------------------------------------ Работа с графом ------------------------------------------------------------------------------
 
 class Graph {
-
+	friend class Menu;
 	string graphPath; //	Путь к tgf
 	ifstream graphFile;	
 	
@@ -368,38 +399,7 @@ public:
 		system("pause");
 	}
 
-	void nextTest() {
-		int v, i, returned;
-		string vLabel;
-		Node* vNode;
-		cout << "Введите название вершины: ";
-		cin >> vLabel;
-		cout << "Введите индекс: ";
-		cin >> i;
-		returned = NEXT(searchNode(vLabel)->index - 1, i);
-		if (returned != NULL) {
-			Node* iNode = searchNode(returned + 1);
-			cout << "Возвращена вершина с индексом '" << iNode->index << "' и названием '" << iNode->label << "'\n";
-		}
-		else cout << "Нет смежных вершин!\n";
-		system("pause");
-	}
-
-	void vertexTest() {
-		int v, i;
-		string vLabel;
-		Node* vNode, *returned;
-		cout << "Введите название вершины: ";
-		cin >> vLabel;
-		cout << "Введите индекс: ";
-		cin >> i;
-		returned = VERTEX(searchNode(vLabel), i);
-		if (returned != nullptr) {
-			cout << "Возвращена вершина с индексом '" << returned->index << "' и названием '" << returned->label << "'\n";
-		}
-		else cout << "Нет такой вершины!\n";
-		system("pause");
-	}
+	
 	~Graph() {
 		ptecNode = pNodeStart;
 		for (int i = 0; i < nodeCount-1; i++) {
@@ -756,14 +756,14 @@ private:
 		if (GraphCount == 0) {
 			cout << "Выберите действие: \n";
 			cout << "1. Загрузить граф из файла\n";
-			cout << "2. Выйти\n";
+			cout << "0. Выйти\n";
 			char choice = _getch();
 			switch (choice)
 			{
 			case('1'):
 				LoadGraph();
 				break;
-			case('2'):
+			case('0'):
 				exit(0);
 				break;
 			default:
@@ -880,15 +880,19 @@ private:
 			graph(ptecGraph);
 			break;
 		case('f'):
+			/*
 			FIRST(ptecGraph);
+			graph(ptecGraph);
+			*/
+			firstTest();
 			graph(ptecGraph);
 			break;
 		case('n'):
-			ptecGraph->nextTest();
+			nextTest();
 			graph(ptecGraph);
 			break;
 		case('v'):
-			ptecGraph->vertexTest();
+			vertexTest();
 			graph(ptecGraph);
 			break;
 		case('m'):
@@ -945,6 +949,58 @@ private:
 	void FIRST(Graph* graph) {
 		cout << "Индекс первой вершины в графе " << graph->indexGraph << ": "<<graph->pNodeStart->index<<endl;
 		cout << "Её название: " << graph->pNodeStart->label<<endl;
+		system("pause");
+	}
+
+	void firstTest() {
+		cout << "Введите название вершины: ";
+		string vLabel;
+		cin >> vLabel;
+		Node* vNode = ptecGraph->searchNode(vLabel);
+		if (vNode == nullptr) {
+			cout << "Нет такой вершины!";
+		}
+		if (vNode != nullptr) {
+			int returned = ptecGraph->FIRST(vNode);
+			if (returned != -1) {
+				Node* iNode = ptecGraph->searchNode(returned + 1);
+				cout << "Возвращена вершина с индексом '" << iNode->index << "' и названием '" << iNode->label << "'\n";
+			}
+			else cout << "Нет смежных вершин!\n";
+		}
+		system("pause");
+	}
+
+	void nextTest() {
+		int v, i, returned;
+		string vLabel;
+		Node* vNode;
+		cout << "Введите название вершины: ";
+		cin >> vLabel;
+		cout << "Введите индекс: ";
+		cin >> i;
+		returned = ptecGraph->NEXT(ptecGraph->searchNode(vLabel)->index - 1, i);
+		if (returned != NULL) {
+			Node* iNode = ptecGraph->searchNode(returned + 1);
+			cout << "Возвращена вершина с индексом '" << iNode->index << "' и названием '" << iNode->label << "'\n";
+		}
+		else cout << "Нет смежных вершин!\n";
+		system("pause");
+	}
+
+	void vertexTest() {
+		int v, i;
+		string vLabel;
+		Node* vNode, * returned;
+		cout << "Введите название вершины: ";
+		cin >> vLabel;
+		cout << "Введите индекс: ";
+		cin >> i;
+		returned = ptecGraph->VERTEX(ptecGraph->searchNode(vLabel), i);
+		if (returned != nullptr) {
+			cout << "Возвращена вершина с индексом '" << returned->index << "' и названием '" << returned->label << "'\n";
+		}
+		else cout << "Нет такой вершины!\n";
 		system("pause");
 	}
 };
