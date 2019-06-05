@@ -150,6 +150,9 @@ public:
 	}
 		
 	~Node() {
+		delete outNode;
+		delete toNode;
+		delete NodeBuffer;
 	}
 private:
 
@@ -285,7 +288,8 @@ public:
 
 		// Вызываем рекурсивную функцию, чтобы выводить все пути 
 		printAllPathsUtil(s, d, visited, path, path_index, s, flagNode);
-		
+		delete[] path;
+		delete[] visited;
 	}
 
 	void addNode() {
@@ -402,13 +406,14 @@ public:
 	
 	~Graph() {
 		ptecNode = pNodeStart;
-		for (int i = 0; i < nodeCount-1; i++) {
+		int N = nodeCount;
+		for (int i = 0; i < N-1; i++) {
 			
 			ptecNode = ptecNode->next;
 			deleteNode(ptecNode->pred);
 			delete[] ConnectivityMatrix[i];
 		}
-
+		delete[] ConnectivityMatrix[N - 1];
 		deleteNode(ptecNode);
 		delete[] ConnectivityMatrix;
 	}
