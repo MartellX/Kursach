@@ -52,7 +52,7 @@ public:
 	string label;
 	Node* pred, * next; // Адреса предыдущей и следующей вершины в графе
 	Node** toNode, **outNode, **NodeBuffer; // Будущие указатели на массив с указателями на Вершины, куда данная Вершина ведет (toNode), и откуда (outNode)
-	int toNodeCount, outNodeCount;
+	int toNodeCount, outNodeCount, flag1 = 1, flag2 = 1, flag3 = 1;
 
 	Node() {
 		toNode = new Node*(0);
@@ -69,6 +69,7 @@ public:
 
 	void refreshNodeEdges(Node* connectedNode, int vector) { // vector означает направление (0 - входит в данную вершину, 1 - выходит из данной вершины)
 		cout << "Node[" << index << "]\n";
+		flag3 = 0;
 		if (vector) {
 			toBuffer(toNode, toNodeCount);
 			delete[] toNode;
@@ -85,9 +86,10 @@ public:
 			outBuffer(outNode, outNodeCount - 1);
 			outNode[outNodeCount - 1] = connectedNode;
 		}
-		//delete[] NodeBuffer;
+		delete[] NodeBuffer;
 	}
 	void deleteNodeEdges(Node* connectedNode, int vector) {
+		flag3 = 0;
 		int deletedIndex;
 		if (vector) {
 			toBuffer(toNode, toNodeCount);
@@ -102,7 +104,9 @@ public:
 				delete[] toNode;
 				toNode = new Node * [toNodeCount];
 				outBuffer(toNode, toNodeCount + 1, deletedIndex);
+				flag2 = 1;
 			}
+			else flag2 = 0;
 		}
 		else {
 			toBuffer(outNode, outNodeCount);
@@ -115,10 +119,12 @@ public:
 			outNodeCount--;
 			delete[] outNode;
 			if (outNodeCount > 0) {
-				
+
 				outNode = new Node * [outNodeCount];
 				outBuffer(outNode, outNodeCount + 1, deletedIndex);
+				flag1 = 1;
 			}
+			else flag1 = 0;
 			
 		}
 		delete[] NodeBuffer;
@@ -150,9 +156,13 @@ public:
 	}
 		
 	~Node() {
-		delete outNode;
-		delete toNode;
-		delete NodeBuffer;
+		if (flag1)
+			delete[] outNode;
+		if (flag2)
+			delete[] toNode;
+		if (flag3)
+			delete[] NodeBuffer;
+		
 	}
 private:
 
@@ -541,8 +551,8 @@ private:
 			
 		}
 		else {
-			ppredNode->next = ptecNode;
-			ptecNode->pred = ppredNode;
+			pNodeFinish->next = ptecNode;
+			ptecNode->pred = pNodeFinish;
 		}
 
 		ptecNode->label = label;
