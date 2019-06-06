@@ -8,7 +8,7 @@
 #include <fstream>
 #include <string.h>
 #include <iomanip>
-
+//#include <vld.h>
 using namespace std;
 
 
@@ -86,7 +86,6 @@ public:
 			outBuffer(outNode, outNodeCount - 1);
 			outNode[outNodeCount - 1] = connectedNode;
 		}
-		delete[] NodeBuffer;
 	}
 	void deleteNodeEdges(Node* connectedNode, int vector) {
 		flag3 = 0;
@@ -100,8 +99,9 @@ public:
 				}
 			}
 			toNodeCount--;
+			delete[] toNode;
 			if (toNodeCount > 0) {
-				delete[] toNode;
+				
 				toNode = new Node * [toNodeCount];
 				outBuffer(toNode, toNodeCount + 1, deletedIndex);
 				flag2 = 1;
@@ -126,8 +126,7 @@ public:
 			}
 			else flag1 = 0;
 			
-		}
-		delete[] NodeBuffer;
+		}		
 	}
 
 	bool isConnectedTo(int index) {
@@ -177,6 +176,7 @@ private:
 		for (int i = 0; i < n; i++) {
 			array[i] = NodeBuffer[i] ;
 		}
+		delete[] NodeBuffer;
 	}
 
 	void outBuffer(Node** array, int n, int index) {
@@ -187,6 +187,7 @@ private:
 				k++;
 			}
 		}
+		delete[] NodeBuffer;
 	}
 };
 
@@ -812,7 +813,6 @@ private:
 				OpenGraph(index);
 			case('0'):
 				exit(0);
-				break;
 			default:
 				cout << "Нет такого действия!\n\n";
 				MainMenu();
